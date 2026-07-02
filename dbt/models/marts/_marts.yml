@@ -1,0 +1,57 @@
+version: 2
+
+models:
+  - name: dim_coin
+    description: Current coin dimension (latest metadata snapshot per coin).
+    columns:
+      - name: coin_id
+        tests: [unique, not_null]
+
+  - name: fct_daily_ohlcv
+    description: >
+      Daily OHLCV candles per coin, aggregated from hourly points.
+      Incremental with a 3-day reprocessing lookback.
+    columns:
+      - name: close_usd
+        tests:
+          - not_null
+          - positive_value
+      - name: high_usd
+        tests: [positive_value]
+      - name: low_usd
+        tests: [positive_value]
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [coin_id, price_date]
+      # sanity: high must bound low
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "high_usd >= low_usd"
+
+  - name: fct_coin_metrics
+    description: >
+      Per-coin daily analytics — returns, moving averages, annualized rolling
+      volatility, drawdown from peak. Complete days only.
+    columns:
+      - name: daily_return
+        description: Simple day-over-day close return.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [coin_id, price_date]
+
+  - name: fct_coin_correlations
+    description: 30-day rolling pairwise correlation of daily log returns.
+    columns:
+      - name: corr_30d
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: -1
+                max_value: 1
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          name: unique_grain_fct_coin_correlations
+          arguments:
+            combination_of_columns: [base_coin_id, quote_coin_id, price_date]

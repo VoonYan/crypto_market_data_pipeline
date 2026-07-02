@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: stg_coingecko__prices
+    description: Deduplicated, typed hourly price points. Grain = one row per coin per hour.
+    columns:
+      - name: coin_id
+        tests: [not_null]
+      - name: price_at
+        tests: [not_null]
+      - name: price_usd
+        tests:
+          - not_null
+          - positive_value
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [coin_id, price_at]
+
+  - name: stg_coingecko__coins
+    description: Typed coin metadata snapshots (point-in-time, all history kept).
+    columns:
+      - name: coin_id
+        tests: [not_null]
+      - name: symbol
+        tests: [not_null]

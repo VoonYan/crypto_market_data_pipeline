@@ -1,0 +1,15 @@
+version: 2
+
+sources:
+  - name: coingecko
+    description: >
+      Raw append-only parquet files landed by the Python ingestion layer.
+      Files are immutable; duplicates across load windows are expected and
+      handled in staging.
+    meta:
+      external_location: "read_parquet('../data/raw/{name}/*.parquet')"
+    tables:
+      - name: prices
+        description: Hourly price / market cap / 24h-rolling volume points per coin.
+      - name: coins
+        description: Daily point-in-time snapshots of coin metadata (rank, supply, ATH).

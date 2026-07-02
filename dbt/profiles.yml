@@ -1,0 +1,7 @@
+crypto_pipeline:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ../data/warehouse/crypto.duckdb
+      threads: 4

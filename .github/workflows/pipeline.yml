@@ -1,0 +1,54 @@
+name: Daily pipeline run
+
+on:
+  schedule:
+    - cron: "15 6 * * *"   # 06:15 UTC daily
+  workflow_dispatch:        # manual trigger from the Actions tab
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pipeline
+  cancel-in-progress: false
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Unit tests
+        run: pytest tests/ -q
+
+      - name: Ingest (incremental from committed watermark)
+        env:
+          COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+        run: python -m ingestion.ingest
+
+      - name: dbt build (models + tests)
+        working-directory: dbt
+        run: |
+          mkdir -p ../data/warehouse
+          dbt deps --profiles-dir .
+          dbt build --profiles-dir .
+
+      - name: Export marts
+        run: python -m ingestion.export_marts
+
+      - name: Commit updated data
+        run: |
+          git config user.name "pipeline-bot"
+          git config user.email "actions@github.com"
+          git add data/raw data/state data/marts
+          git diff --cached --quiet && echo "No new data" && exit 0
+          git commit -m "data: scheduled ingestion $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push

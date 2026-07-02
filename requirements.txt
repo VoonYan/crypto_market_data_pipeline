@@ -1,0 +1,9 @@
+requests>=2.32,<3
+pandas>=2.2,<3
+pyarrow>=18,<20
+duckdb>=1.1,<2
+dbt-core>=1.9,<2
+dbt-duckdb>=1.9,<2
+streamlit>=1.40,<2
+plotly>=5.24,<6
+pytest>=8,<9
