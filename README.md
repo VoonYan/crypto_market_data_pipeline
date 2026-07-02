@@ -1,5 +1,9 @@
 # Crypto Market Data Pipeline
 
+[![Daily pipeline run](https://github.com/VoonYan/crypto_market_data_pipeline/actions/workflows/pipeline.yml/badge.svg)](https://github.com/VoonYan/crypto_market_data_pipeline/actions/workflows/pipeline.yml)
+
+**[Live dashboard](https://cryptomarketdatapipeline-gfappxb5r5lnmrdzxtrcb6o.streamlit.app/)** · refreshed daily by the pipeline
+
 An end to end ELT pipeline I built to practice the patterns used in real data engineering work. It pulls hourly crypto prices from the CoinGecko API, lands them as raw parquet files, models them into a warehouse with dbt on DuckDB, runs data tests, and serves the results to a Streamlit dashboard. A GitHub Actions cron refreshes everything daily, so the repo updates itself.
 
 ```mermaid
